@@ -3,6 +3,8 @@
 This repository implements the **Deep Neural Crossover (DNC)** operator as described in the paper:  
 **"Deep Neural Crossover: A Multi-Parent Operator That Leverages Gene Correlations"**  
 [ACM Link](https://dl.acm.org/doi/abs/10.1145/3638529.3654020)
+![alt text](images/fitness_graph.png "Title")
+
 ---
 
 
