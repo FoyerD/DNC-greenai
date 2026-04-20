@@ -1,5 +1,5 @@
 import torch
-from attention import Attention
+from DNC.attention import Attention
 
 
 class PointerDecoder(torch.nn.Module):
