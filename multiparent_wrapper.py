@@ -1,4 +1,4 @@
-from multiparent_dnc import NeuralCrossover
+from DNC.multiparent_dnc import NeuralCrossover
 from eckity.before_after_publisher import BeforeAfterPublisher
 import torch
 from numpy import stack as np_stack
