@@ -1,18 +1,27 @@
 from multiparent_dnc import NeuralCrossover
+from eckity.before_after_publisher import BeforeAfterPublisher
 import torch
+from numpy import stack as np_stack
 
+BEFORE_TRAIN_EVENT_NAME = 'before_train'
+AFTER_TRAIN_EVENT_NAME = 'after_train'
 
-class NeuralCrossoverWrapper:
+class NeuralCrossoverWrapper(BeforeAfterPublisher):
     def __init__(self, embedding_dim, sequence_length, num_embeddings, get_fitness_function, running_mean_decay=0.99,
                  batch_size=32, load_weights_path=None, freeze_weights=False, learning_rate=1e-3, epsilon_greedy=0.1,
-                 use_scheduler=False, use_device='cpu', adam_decay=0, clip_grads=False, n_parents=2):
+                 use_scheduler=False, use_device='cpu', adam_decay=0, clip_grads=False, n_parents=2, scheduling_threshold=0, higher_is_better = True, events=None, event_names=None):
+        ext_events_names = event_names if event_names is not None else []
+        if events is None:
+            # Initialize events dictionary with event names as keys and subscribers as values
+            ext_events_names.extend([BEFORE_TRAIN_EVENT_NAME, AFTER_TRAIN_EVENT_NAME])
+        super().__init__(events, ext_events_names)
         self.device = use_device
         self.neural_crossover = NeuralCrossover(embedding_dim, embedding_dim, num_embeddings, sequence_length,
                                                 n_parents=n_parents, device=use_device).to(
             self.device)
         self.running_mean_decay = running_mean_decay
         self.optimizer = torch.optim.Adam(self.neural_crossover.parameters(), lr=learning_rate, weight_decay=adam_decay)
-        self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, 'min', patience=10, verbose=True)
+        self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, 'min', patience=10)
         self.get_fitness_function = get_fitness_function
         self.batch_size = batch_size
         self.n_parents = n_parents
@@ -25,6 +34,10 @@ class NeuralCrossoverWrapper:
         self.use_scheduler = use_scheduler
         self.clip_grads = clip_grads
         self.acc_batch_length = 0
+        self.trained = False
+        self.scheduling_threshold = scheduling_threshold
+        self.best_of_gen = None
+        self.higher_is_better = higher_is_better
 
         if self.load_weights_path is not None:
             self.neural_crossover.load_state_dict(torch.load(self.load_weights_path))
@@ -57,12 +70,32 @@ class NeuralCrossoverWrapper:
             self.clear_stacks()
             return
 
-        total_batches_length = self.acc_batch_length
-        if total_batches_length < self.batch_size:
+        if self.acc_batch_length < self.batch_size or self.acc_batch_length <= 0:
             return
+        # ------ scheduling threshold ------
+        while self.acc_batch_length > self.batch_size:
+            # /2 because each crossover produces 2 children, so we need to remove 2 parents from the batch
+            self.acc_batch_length -= self.sampled_action_space[0].shape[0] / 2
+            del self.sampled_action_space[0]
+            del self.batch_stack_fitness_values[0]
+            del self.sampled_solutions[0]
+
+        best_func_torch = torch.max if self.higher_is_better else torch.min
+        best_batch_fitness = best_func_torch(torch.cat(self.batch_stack_fitness_values, dim=0).unsqueeze(1))
+
+        if self.best_of_gen is not None and self.scheduling_threshold > 0:
+            if abs(best_batch_fitness - self.best_of_gen) < self.scheduling_threshold:
+                return
+
+        self.publish(BEFORE_TRAIN_EVENT_NAME)
+        if(self.best_of_gen is None):
+            self.best_of_gen = best_batch_fitness
+        else:
+            best_func = max if self.higher_is_better else min
+            self.best_of_gen = best_func(best_batch_fitness, self.best_of_gen)
+        # ------ scheduling threshold ------
 
         self.acc_batch_length = 0
-
         fitness_values, sampled_action_space, sampled_solutions = self.get_batch_and_clear()
         self.optimizer.zero_grad()
         sampled_solutions_proba = torch.gather(sampled_action_space, 2, sampled_solutions.unsqueeze(2)).squeeze(-1).to(
@@ -79,8 +112,10 @@ class NeuralCrossoverWrapper:
 
         if self.use_scheduler:
             self.scheduler.step(loss)
-
-        print(f'loss: {loss}, reward: {torch.mean(fitness_values.type(torch.DoubleTensor))}')
+        
+        self.publish(AFTER_TRAIN_EVENT_NAME)
+        self.trained = True
+        # print(f'loss: {loss}, reward: {torch.mean(fitness_values.type(torch.DoubleTensor))}')
 
     def combine_parents_uniform(self, parents_matrix):
         """
@@ -138,8 +173,11 @@ class NeuralCrossoverWrapper:
             return []
 
         parents_grouped = list(zip(*parents_pairs))
-        parents_matrix = torch.cat([torch.unsqueeze(torch.tensor(group), 0) for group in parents_grouped],
-                                   dim=0)
+
+        parents_matrix_np = np_stack(parents_grouped)
+        parents_matrix = torch.from_numpy(parents_matrix_np)
+        # parents_matrix = torch.cat([torch.unsqueeze(torch.tensor(group), 0) for group in parents_grouped], dim=0)
+
         self.acc_batch_length += parents_matrix.shape[1]
         child1, child2 = self.get_crossover(parents_matrix)
         return list(zip(child1, child2))
