@@ -1,4 +1,4 @@
-from multiparent_dnc import NeuralCrossover
+from .neural_crossover import NeuralCrossover
 import torch
 
 
