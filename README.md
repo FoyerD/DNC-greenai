@@ -10,7 +10,7 @@ DNC is described in **“Deep Neural Crossover: A Multi-Parent Operator That Lev
 pip install eckity-dnc
 ```
 
-Installing `eckity-dnc` also installs its EC-KitY, PyTorch, and NumPy dependencies.
+Installing `eckity-dnc` also installs its EC-KitY, PyTorch, NumPy, and SciPy dependencies.
 
 ## Usage
 
@@ -65,8 +65,9 @@ See [`dnc_runner_eckity.py`](dnc_runner_eckity.py) for a complete bin-packing ex
 
 - Python 3.9 or newer
 - EC-KitY 0.4.x (tested with 0.4.1)
-- PyTorch 2.7.x (tested with 2.7.1)
-- NumPy 1.26.x
+- PyTorch 2.7.1 or newer (tested with 2.7.1)
+- NumPy 2.0.2 or newer (tested with 2.0.2)
+- SciPy 1.13.0 or newer (tested with 1.13.0)
 
 ## Development
 
