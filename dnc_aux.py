@@ -1,27 +1,6 @@
-from random import random
-
 import numpy as np
 
 from eckity.evaluators import SimpleIndividualEvaluator
-from eckity.genetic_operators import VectorNPointMutation
-
-
-def uniform_cell_selector(vec):
-    return list(range(vec.size()))
-
-
-class IntVectorUniformMutation(VectorNPointMutation):
-    """
-    Uniform N Point Integer Mutation
-    """
-
-    def __init__(self, probability=0.5, arity=1, events=None, probability_for_each=0.1):
-        self.probability_for_each = probability_for_each
-        super().__init__(probability=probability,
-                         arity=arity,
-                         mut_val_getter=lambda individual, index: individual.get_random_number_in_bounds(
-                             index) if random() <= self.probability_for_each else individual.cell_value(index),
-                         events=events, cell_selector=uniform_cell_selector)
 
 
 class BinPackingEvaluator(SimpleIndividualEvaluator):

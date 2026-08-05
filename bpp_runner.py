@@ -1,5 +1,6 @@
 from eckity.algorithms.simple_evolution import SimpleEvolution
 from eckity.breeders.simple_breeder import SimpleBreeder
+from eckity.genetic_operators import IntVectorOnePointMutation
 from eckity.genetic_operators.crossovers.vector_k_point_crossover import VectorKPointsCrossover
 from eckity.genetic_operators.selections.tournament_selection import TournamentSelection
 from eckity.statistics.best_average_worst_statistics import BestAverageWorstStatistics
@@ -7,7 +8,7 @@ from eckity.subpopulation import Subpopulation
 import json
 import numpy as np
 from eckity_dnc import GAIntegerStringVectorCreator
-from dnc_aux import IntVectorUniformMutation, BinPackingEvaluator
+from dnc_aux import BinPackingEvaluator
 
 
 def main():
@@ -34,7 +35,7 @@ def main():
                       # genetic operators sequence to be applied in each generation
                       operators_sequence=[
                           VectorKPointsCrossover(probability=0.8, k=1),
-                          IntVectorUniformMutation(probability=0.5, probability_for_each=0.1)
+                          IntVectorOnePointMutation(probability=0.5, probability_for_each=0.1)
                       ],
                       selection_methods=[TournamentSelection(tournament_size=5)]
                       ),

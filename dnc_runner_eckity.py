@@ -1,4 +1,4 @@
-from eckity.genetic_operators.mutations.vector_n_point_mutation import VectorNPointMutation
+from eckity.genetic_operators import IntVectorOnePointMutation
 
 from eckity.evaluators.simple_individual_evaluator import SimpleIndividualEvaluator
 
@@ -10,25 +10,6 @@ from eckity.subpopulation import Subpopulation
 import json
 import numpy as np
 from eckity_dnc import DeepNeuralCrossoverConfig, GAIntegerStringVectorCreator, DeepNeuralCrossover
-from random import random
-
-
-def uniform_cell_selector(vec):
-    return list(range(vec.size()))
-
-
-class IntVectorUniformMutation(VectorNPointMutation):
-    """
-    Uniform N Point Integer Mutation
-    """
-
-    def __init__(self, probability=0.5, arity=1, events=None, probability_for_each=0.1):
-        self.probability_for_each = probability_for_each
-        super().__init__(probability=probability,
-                         arity=arity,
-                         mut_val_getter=lambda individual, index: individual.get_random_number_in_bounds(
-                             index) if random() <= self.probability_for_each else individual.cell_value(index),
-                         events=events, cell_selector=uniform_cell_selector)
 
 
 class BinPackingEvaluator(SimpleIndividualEvaluator):
@@ -124,7 +105,7 @@ def main():
                       # genetic operators sequence to be applied in each generation
                       operators_sequence=[
                           dnc_op,
-                          IntVectorUniformMutation(probability=0.5, probability_for_each=0.1)
+                          IntVectorOnePointMutation(probability=0.5, probability_for_each=0.1)
                       ],
                       selection_methods=[TournamentSelection(tournament_size=5)]
                       ),
