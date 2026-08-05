@@ -126,10 +126,7 @@ def main():
                           dnc_op,
                           IntVectorUniformMutation(probability=0.5, probability_for_each=0.1)
                       ],
-                      selection_methods=[
-                          # (selection method, selection probability) tuple
-                          (TournamentSelection(tournament_size=5, higher_is_better=True), 1)
-                      ]
+                      selection_methods=[TournamentSelection(tournament_size=5)]
                       ),
         breeder=SimpleBreeder(),
         max_workers=1,

@@ -98,10 +98,7 @@ def main():
                           VectorKPointsCrossover(probability=0.5, k=1),
                           IntVectorNPointMutation(probability=0.1, n=ind_length)
                       ],
-                      selection_methods=[
-                          # (selection method, selection probability) tuple
-                          (TournamentSelection(tournament_size=5, higher_is_better=True), 1)
-                      ]
+                      selection_methods=[TournamentSelection(tournament_size=5)]
                       ),
         breeder=SimpleBreeder(),
         max_workers=1,
