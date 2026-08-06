@@ -4,12 +4,13 @@ from eckity.evaluators.simple_individual_evaluator import SimpleIndividualEvalua
 
 from eckity.algorithms.simple_evolution import SimpleEvolution
 from eckity.breeders.simple_breeder import SimpleBreeder
+from eckity.creators import GAIntVectorCreator
 from eckity.genetic_operators.selections.tournament_selection import TournamentSelection
 from eckity.statistics.best_average_worst_statistics import BestAverageWorstStatistics
 from eckity.subpopulation import Subpopulation
 import json
 import numpy as np
-from eckity_dnc import DeepNeuralCrossoverConfig, GAIntegerStringVectorCreator, DeepNeuralCrossover
+from eckity_dnc import DeepNeuralCrossoverConfig, DeepNeuralCrossover
 
 
 class BinPackingEvaluator(SimpleIndividualEvaluator):
@@ -74,7 +75,7 @@ def main():
     min_bound, max_bound = 0, dataset_n_items - 1
     population_size = 100
 
-    individual_creator = GAIntegerStringVectorCreator(length=ind_length, bounds=(min_bound, max_bound))
+    individual_creator = GAIntVectorCreator(length=ind_length, bounds=(min_bound, max_bound))
     bpp_eval = BinPackingEvaluator(n_items=dataset_n_items, item_weights=dataset_item_weights,
                                    bin_capacity=dataset_bin_capacity, fitness_dict=fitness_dict)
 

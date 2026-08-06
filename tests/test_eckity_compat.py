@@ -3,9 +3,13 @@ import random
 from importlib.metadata import version
 from pathlib import Path
 
+from eckity.creators import GAIntVectorCreator
+from eckity.evaluators import SimpleIndividualEvaluator
+from eckity.genetic_encodings.ga import IntVector
 from eckity.genetic_operators import IntVectorOnePointMutation
 
-from eckity_dnc import GAIntegerStringVectorCreator
+import eckity_dnc
+from eckity_dnc import DeepNeuralCrossover, DeepNeuralCrossoverConfig
 
 
 ROOT = Path(__file__).parents[1]
@@ -18,28 +22,53 @@ RUNNER_FILES = [
 
 
 def test_release_metadata_and_public_imports():
-    from eckity_dnc import (
-        DeepNeuralCrossover,
-        DeepNeuralCrossoverConfig,
-        GAIntegerStringVectorCreator,
-    )
-
     assert version("eckity") == "0.4.2"
     assert version("eckity-dnc") == "0.1.2"
-    assert all(
-        item is not None
-        for item in (
-            DeepNeuralCrossover,
-            DeepNeuralCrossoverConfig,
-            GAIntegerStringVectorCreator,
-        )
+    assert DeepNeuralCrossover is not None
+    assert DeepNeuralCrossoverConfig is not None
+
+    legacy_creator = "GAInteger" + "StringVectorCreator"
+    source_files = [
+        ROOT / "README.md",
+        *ROOT.glob("*.py"),
+        *(ROOT / "src" / "eckity_dnc").rglob("*.py"),
+    ]
+    assert eckity_dnc.__all__ == [
+        "DeepNeuralCrossover",
+        "DeepNeuralCrossoverConfig",
+    ]
+    assert not hasattr(eckity_dnc, legacy_creator)
+    for path in source_files:
+        assert legacy_creator not in path.read_text(encoding="utf-8")
+
+
+class RecordingEvaluator(SimpleIndividualEvaluator):
+    def evaluate_individual(self, individual):
+        self.individual = individual
+        return float(sum(individual.vector))
+
+
+def test_dnc_converts_native_creator_vectors_for_evaluation():
+    evaluator = RecordingEvaluator()
+    creator = GAIntVectorCreator(length=2, bounds=(0, 1))
+    crossover = DeepNeuralCrossover(
+        probability=1.0,
+        population_size=2,
+        dnc_config=DeepNeuralCrossoverConfig(
+            embedding_dim=2,
+            sequence_length=2,
+            num_embeddings=2,
+            batch_size=2,
+            use_device="cpu",
+        ),
+        individual_evaluator=evaluator,
+        vector_creator=creator,
     )
 
-
-def test_vector_creator_still_uses_fitness_direction():
-    creator = GAIntegerStringVectorCreator(length=2, bounds=(0, 1))
-    individual = creator.individual_from_vector([0, 1])
-    assert individual.fitness.higher_is_better
+    assert crossover.get_fitness_from_vector([0, 1]) == 1.0
+    assert isinstance(evaluator.individual, IntVector)
+    assert evaluator.individual.vector == [0, 1]
+    assert evaluator.individual.fitness.higher_is_better
 
 
 def test_runners_use_native_integer_uniform_mutation():
@@ -58,10 +87,11 @@ def test_runners_use_native_integer_uniform_mutation():
     for path in (ROOT / "bpp_runner.py", ROOT / "dnc_runner_eckity.py"):
         assert "IntVectorOnePointMutation" in path.read_text(encoding="utf-8")
 
-    creator = GAIntegerStringVectorCreator(length=8, bounds=(0, 5))
+    creator = GAIntVectorCreator(length=8, bounds=(0, 5))
     original = [0, 1, 2, 3, 4, 5, 0, 1]
-    first = creator.individual_from_vector(original.copy())
-    second = creator.individual_from_vector(original.copy())
+    first, second = creator.create_individuals(2, higher_is_better=True)
+    first.set_vector(original.copy())
+    second.set_vector(original.copy())
     mutation = IntVectorOnePointMutation(
         probability=1.0,
         probability_for_each=1.0,

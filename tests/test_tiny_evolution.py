@@ -4,6 +4,7 @@ import numpy as np
 import torch
 from eckity.algorithms.simple_evolution import SimpleEvolution
 from eckity.breeders.simple_breeder import SimpleBreeder
+from eckity.creators import GAIntVectorCreator
 from eckity.evaluators.simple_individual_evaluator import SimpleIndividualEvaluator
 from eckity.genetic_operators.selections.tournament_selection import (
     TournamentSelection,
@@ -13,7 +14,6 @@ from eckity.subpopulation import Subpopulation
 from eckity_dnc import (
     DeepNeuralCrossover,
     DeepNeuralCrossoverConfig,
-    GAIntegerStringVectorCreator,
 )
 
 
@@ -28,7 +28,7 @@ def test_tiny_bit_vector_evolves_and_trains_dnc():
     torch.manual_seed(7)
 
     evaluator = OneMaxEvaluator()
-    creator = GAIntegerStringVectorCreator(length=4, bounds=(0, 1))
+    creator = GAIntVectorCreator(length=4, bounds=(0, 1))
     config = DeepNeuralCrossoverConfig(
         embedding_dim=2,
         sequence_length=4,

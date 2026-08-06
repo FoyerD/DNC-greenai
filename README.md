@@ -17,10 +17,10 @@ Installing `eckity-dnc` also installs its EC-KitY, PyTorch, NumPy, and SciPy dep
 Import the public API from `eckity_dnc`:
 
 ```python
+from eckity.creators import GAIntVectorCreator
 from eckity_dnc import (
     DeepNeuralCrossover,
     DeepNeuralCrossoverConfig,
-    GAIntegerStringVectorCreator,
 )
 ```
 
@@ -31,7 +31,7 @@ population_size = 100
 individual_length = 160
 number_of_gene_values = 161
 
-individual_creator = GAIntegerStringVectorCreator(
+individual_creator = GAIntVectorCreator(
     length=individual_length,
     bounds=(0, number_of_gene_values - 1),
 )
