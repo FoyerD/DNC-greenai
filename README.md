@@ -63,7 +63,7 @@ See [`dnc_runner_eckity.py`](dnc_runner_eckity.py) for a complete bin-packing ex
 
 ## Compatibility
 
-- Python 3.9 or newer
+- Python 3.10 or newer
 - EC-KitY 0.4.x (tested with 0.4.1)
 - PyTorch 2.7.1 or newer (tested with 2.7.1)
 - NumPy 2.0.2 or newer (tested with 2.0.2)
