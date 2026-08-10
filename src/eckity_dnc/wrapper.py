@@ -1,6 +1,7 @@
 from .neural_crossover import NeuralCrossover
 import torch
 from numpy import stack as np_stack
+from eckity.before_after_publisher import BeforeAfterPublisher
 
 BEFORE_TRAIN_EVENT_NAME = 'before_train'
 AFTER_TRAIN_EVENT_NAME = 'after_train'
