@@ -1,25 +1,14 @@
 from eckity.algorithms.simple_evolution import SimpleEvolution
 from eckity.breeders.simple_breeder import SimpleBreeder
+from eckity.creators import GAIntVectorCreator
 from eckity.evaluators.simple_individual_evaluator import SimpleIndividualEvaluator
 from eckity.genetic_operators.crossovers.vector_k_point_crossover import VectorKPointsCrossover
 from eckity.genetic_operators.mutations.vector_random_mutation import IntVectorNPointMutation
 from eckity.genetic_operators.selections.tournament_selection import TournamentSelection
 from eckity.statistics.best_average_worst_statistics import BestAverageWorstStatistics
 from eckity.subpopulation import Subpopulation
-from eckity.creators.ga_creators.simple_vector_creator import GAVectorCreator
-from eckity.genetic_encodings.ga.int_vector import IntVector
 import json
 import numpy as np
-
-
-class GAIntegerStringVectorCreator(GAVectorCreator):
-    def __init__(self,
-                 length=1,
-                 bounds=(0, 1),
-                 gene_creator=None,
-                 events=None):
-        super().__init__(length=length, bounds=bounds, gene_creator=gene_creator, vector_type=IntVector,
-                         events=events)
 
 
 class BinPackingEvaluator(SimpleIndividualEvaluator):
@@ -85,7 +74,7 @@ def main():
 
     # Initialize the evolutionary algorithm
     algo = SimpleEvolution(
-        Subpopulation(creators=GAIntegerStringVectorCreator(length=ind_length, bounds=(min_bound, max_bound)),
+        Subpopulation(creators=GAIntVectorCreator(length=ind_length, bounds=(min_bound, max_bound)),
                       population_size=100,
                       # user-defined fitness evaluation method
                       evaluator=BinPackingEvaluator(n_items=dataset_n_items, item_weights=dataset_item_weights,
@@ -98,10 +87,7 @@ def main():
                           VectorKPointsCrossover(probability=0.5, k=1),
                           IntVectorNPointMutation(probability=0.1, n=ind_length)
                       ],
-                      selection_methods=[
-                          # (selection method, selection probability) tuple
-                          (TournamentSelection(tournament_size=5, higher_is_better=True), 1)
-                      ]
+                      selection_methods=[TournamentSelection(tournament_size=5)]
                       ),
         breeder=SimpleBreeder(),
         max_workers=1,

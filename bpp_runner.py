@@ -1,13 +1,14 @@
 from eckity.algorithms.simple_evolution import SimpleEvolution
 from eckity.breeders.simple_breeder import SimpleBreeder
+from eckity.creators import GAIntVectorCreator
+from eckity.genetic_operators import IntVectorOnePointMutation
 from eckity.genetic_operators.crossovers.vector_k_point_crossover import VectorKPointsCrossover
 from eckity.genetic_operators.selections.tournament_selection import TournamentSelection
 from eckity.statistics.best_average_worst_statistics import BestAverageWorstStatistics
 from eckity.subpopulation import Subpopulation
 import json
 import numpy as np
-from examples.dnc.DNC_eckity_wrapper import GAIntegerStringVectorCreator
-from examples.dnc.dnc_aux import IntVectorUniformMutation, BinPackingEvaluator
+from dnc_aux import BinPackingEvaluator
 
 
 def main():
@@ -23,7 +24,7 @@ def main():
 
     # Initialize the evolutionary algorithm
     algo = SimpleEvolution(
-        Subpopulation(creators=GAIntegerStringVectorCreator(length=ind_length, bounds=(min_bound, max_bound)),
+        Subpopulation(creators=GAIntVectorCreator(length=ind_length, bounds=(min_bound, max_bound)),
                       population_size=100,
                       # user-defined fitness evaluation method
                       evaluator=BinPackingEvaluator(n_items=dataset_n_items, item_weights=dataset_item_weights,
@@ -34,12 +35,9 @@ def main():
                       # genetic operators sequence to be applied in each generation
                       operators_sequence=[
                           VectorKPointsCrossover(probability=0.8, k=1),
-                          IntVectorUniformMutation(probability=0.5, probability_for_each=0.1)
+                          IntVectorOnePointMutation(probability=0.5, probability_for_each=0.1)
                       ],
-                      selection_methods=[
-                          # (selection method, selection probability) tuple
-                          (TournamentSelection(tournament_size=5, higher_is_better=True), 1)
-                      ]
+                      selection_methods=[TournamentSelection(tournament_size=5)]
                       ),
         breeder=SimpleBreeder(),
         max_workers=1,

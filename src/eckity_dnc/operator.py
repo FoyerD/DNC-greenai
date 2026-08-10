@@ -1,11 +1,9 @@
 import numpy as np
-from eckity.genetic_encodings.ga.int_vector import IntVector
-
-from eckity.creators.ga_creators.simple_vector_creator import GAVectorCreator
+from eckity.creators import GAIntVectorCreator
 
 from eckity.evaluators.simple_individual_evaluator import SimpleIndividualEvaluator
 from eckity.genetic_operators.genetic_operator import GeneticOperator
-from DNC.multiparent_wrapper import NeuralCrossoverWrapper
+from .wrapper import NeuralCrossoverWrapper
 
 
 class DeepNeuralCrossoverConfig:
@@ -30,24 +28,9 @@ class DeepNeuralCrossoverConfig:
         self.scheduling_threshold = scheduling_threshold
 
 
-class GAIntegerStringVectorCreator(GAVectorCreator):
-    def __init__(self,
-                 length=1,
-                 bounds=(0, 1),
-                 gene_creator=None,
-                 events=None):
-        super().__init__(length=length, bounds=bounds, gene_creator=gene_creator, vector_type=IntVector,
-                         events=events)
-
-    def individual_from_vector(self, vector):
-        ind = self.type(length=self.length, bounds=self.bounds, fitness=self.fitness_type(higher_is_better=True))
-        ind.set_vector(vector)
-        return ind
-
-
 class DeepNeuralCrossover(GeneticOperator):
     def __init__(self, probability: float, population_size: int, dnc_config: DeepNeuralCrossoverConfig,
-                 individual_evaluator: SimpleIndividualEvaluator, vector_creator: GAIntegerStringVectorCreator,
+                 individual_evaluator: SimpleIndividualEvaluator, vector_creator: GAIntVectorCreator,
                  events=None):
         assert 0 < probability <= 1, "Probability must be between 0 and 1."
         assert population_size > 0, "Population size must be greater than 0."
@@ -104,5 +87,11 @@ class DeepNeuralCrossover(GeneticOperator):
         return pairs_to_cross, crossover_masks
 
     def get_fitness_from_vector(self, vector):
-        ind = self.vector_creator.individual_from_vector(vector)
+        ind = self.vector_creator.type(
+            length=self.vector_creator.length,
+            bounds=self.vector_creator.bounds,
+            fitness=self.vector_creator.fitness_type(higher_is_better=True),
+            update_parents=self.vector_creator.update_parents,
+        )
+        ind.set_vector(vector)
         return self.individual_evaluator.evaluate_individual(ind)
