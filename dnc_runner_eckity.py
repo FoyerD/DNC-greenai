@@ -11,10 +11,6 @@ from eckity.subpopulation import Subpopulation
 import json
 import numpy as np
 from eckity_dnc import DeepNeuralCrossoverConfig, DeepNeuralCrossover
-from random import random
-
-
-
 
 
 class BinPackingEvaluator(SimpleIndividualEvaluator):
